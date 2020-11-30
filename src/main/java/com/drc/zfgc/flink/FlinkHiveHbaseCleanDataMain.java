@@ -103,7 +103,6 @@ public class FlinkHiveHbaseCleanDataMain {
 
     public static void main(String[] args) {
         System.out.println(DateUtils.formatHhMmSsOfDate(new Date()) + "\t开始执行....");
-
         String path = "src/main/resources/xml";
         cleanData(path);
 
