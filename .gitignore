@@ -1,0 +1,5 @@
+# Project exclude paths
+/target/
+/.idea/
+/*.json
+/src/main/resources/json
