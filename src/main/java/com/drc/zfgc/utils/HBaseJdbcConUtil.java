@@ -1,5 +1,6 @@
 package com.drc.zfgc.utils;
 
+import com.drc.zfgc.contant.PropertiesConstant;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
@@ -31,7 +32,7 @@ public class HBaseJdbcConUtil {
            /* HBaseConfiguration configuration = new HBaseConfiguration();
             configuration.set("","");*/
             Configuration configuration = HBaseConfiguration.create();
-            configuration.addResource("xml/hbase-site.xml");
+            configuration.addResource(PropertiesConstant.HBASE_CONFIG_PATH);
 
             //指定用户名
             UserGroupInformation userGroupInformation = UserGroupInformation.createRemoteUser("hue");

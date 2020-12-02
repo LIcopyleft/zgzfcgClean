@@ -15,7 +15,7 @@ public class Main {
 
     public static void main(String[] args) throws InterruptedException, IOException {
 
-        System.out.println(DateUtils.formatHhMmSsOfDate(new Date()) + "\t开始执行....");
+        System.out.println(DateUtils.parseDateToStr(new Date()) + "\t开始执行....");
 
         FlinkHiveHbaseCleanDataMain.cleanData(null);
     }

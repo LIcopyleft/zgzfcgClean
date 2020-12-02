@@ -15,6 +15,8 @@ import org.apache.flink.table.api.SqlDialect;
 import org.apache.flink.table.api.Table;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.apache.flink.table.catalog.hive.HiveCatalog;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.net.URL;
@@ -28,7 +30,7 @@ import java.util.Date;
  */
 public class FlinkHiveHbaseCleanDataMain {
 
-
+    private final static Logger logger = LoggerFactory.getLogger(FlinkHiveHbaseCleanDataMain.class);
     /*private static String createTableSql = "CREATE TABLE  hive_zfcg.test_hive_1 (\n" +
             "        url_id int ,\n" +
             "        purchaser string  ,\n" +
@@ -102,24 +104,28 @@ public class FlinkHiveHbaseCleanDataMain {
             "        text_annex string)";*/
 
     public static void main(String[] args) {
-        System.out.println(DateUtils.formatHhMmSsOfDate(new Date()) + "\t开始执行....");
+        System.out.println(DateUtils.parseDateToStr(new Date()) + "\t开始执行....");
+
+        logger.error("开始执行....");
         String path = "src/main/resources/xml";
         cleanData(path);
 
     }
 
-    public static void cleanData(String defaultPath) {
+    public static void cleanData(String confPath) {
         //初始化执行环境
-    //    FlinkHiveHbaseCleanDataMain obj = new FlinkHiveHbaseCleanDataMain();
+        //    FlinkHiveHbaseCleanDataMain obj = new FlinkHiveHbaseCleanDataMain();
         try {
             System.out.println("进入cleanData方法.....");
             //   EnvironmentSettings fsSettings = null;
-
             EnvironmentSettings fsSettings = EnvironmentSettings.newInstance().useBlinkPlanner().inStreamingMode().build();
-
             StreamExecutionEnvironment fsEnv = StreamExecutionEnvironment.getExecutionEnvironment();
+            fsEnv.setParallelism(PropertiesConstant.FLINK_PARALLELISM);
+
+            fsEnv.setBufferTimeout(1000 * 60 * 60);
 
             StreamTableEnvironment tEnv = StreamTableEnvironment.create(fsEnv, fsSettings);
+
 
             //构建hivecatalog
             String name = "my_hive";
@@ -151,23 +157,21 @@ public class FlinkHiveHbaseCleanDataMain {
         System.out.println(path2);*/
             //     String path = "/home/flink/zfcg_conf/xml";
 
-            String confDir = null;
+            //    String confDir = null;
 
-            if (defaultPath != null) {
-                confDir = defaultPath;
-            } else {
-                String homePath = System.getProperty("user.dir");
-                confDir = homePath + "/zfcg_conf/xml";
+            if (confPath == null) {
+                confPath = PropertiesConstant.CONFIG_PATH;
             }
-            if (confDir == null) {
+
+            if (confPath == null) {
                 System.err.println("配置文件目录不能为空....");
                 return;
             }
 
-            System.out.println("confDir:" + confDir);
+            System.out.println("confPath:" + confPath);
             //   String confDir = "src/main/resources/xml";
             //    String version = "3.1.0";
-            HiveCatalog hive = new HiveCatalog(name, defaultDatabase, confDir);
+            HiveCatalog hive = new HiveCatalog(name, defaultDatabase, confPath);
 
             //注册一个catalog并且使用，注意名称要唯一
             String catalogName = "catalog_ltc";
@@ -183,14 +187,13 @@ public class FlinkHiveHbaseCleanDataMain {
             Table table = tEnv.sqlQuery(querySql);
             //执行hivesql的相关操作
             table.printSchema();
-            //    table.execute().print();
+      //      table.execute().print();
 
             //单独字段的处理
-            DataStream<HiveData> demo = tEnv.toAppendStream(table, HiveData.class);
+            DataStream<HiveData> dataStream = tEnv.toAppendStream(table, HiveData.class);
             //    DataStream<HiveData3> demo1 = tEnv.toAppendStream(table, HiveData3.class);
-            //    System.out.println(demo.toString());
-
-            DataStream<CNGovCleanData> ds = demo.map(new MapFunction<HiveData, CNGovCleanData>() {
+            //    System.out.println(dataStream.toString());
+            DataStream<CNGovCleanData> ds = dataStream.map(new MapFunction<HiveData, CNGovCleanData>() {
                 @Override
                 public CNGovCleanData map(HiveData value) throws Exception {
                     //修改单独的字段
@@ -198,14 +201,13 @@ public class FlinkHiveHbaseCleanDataMain {
                     ConventUtils.hiveData2CNGovDataUrl(value, data);
                     CNGovCleanData cleanData = CleanMethod.clean(data);
                     //   System.out.println(cleanData.getRegion()+"\t"+cleanData.getRegion1()+cleanData.getRegion3());
-                    //         System.out.println(cleanData.getItems() + "\t" + cleanData.getRegion1() + cleanData.getRegion3());
-                    data = null;
+                //    System.out.println(cleanData.getItems() + "\t" + cleanData.getRegion1() + cleanData.getRegion3());
                     return cleanData;
                 }
             });
             //插入hbase
             System.out.println("开始插入hbase.....");
-            ds.addSink(new HBaseWriter());
+                ds.addSink(new HBaseWriter());
 
 
       /*  Table t1 = tEnv.fromDataStream(ds);

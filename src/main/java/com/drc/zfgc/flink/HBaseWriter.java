@@ -1,5 +1,6 @@
 package com.drc.zfgc.flink;
 
+
 import cn.hutool.core.bean.BeanUtil;
 import com.drc.zfgc.contant.PropertiesConstant;
 import com.drc.zfgc.model.CNGovCleanData;
@@ -28,6 +29,7 @@ import java.util.Map;
 public class HBaseWriter extends RichSinkFunction<CNGovCleanData> {
 
     private static final Logger logger = LoggerFactory.getLogger(HBaseWriter.class);
+  //  private static final org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(HBaseWriter.class);
 
     private static org.apache.hadoop.conf.Configuration configuration;
     private static Connection connection = null;
@@ -36,6 +38,7 @@ public class HBaseWriter extends RichSinkFunction<CNGovCleanData> {
 
     @Override
     public void open(Configuration parameters) throws Exception {
+
 
         //connection = ConnectionFactory.createConnection(configuration);
         connection = HBaseJdbcConUtil.getCon();
@@ -48,7 +51,7 @@ public class HBaseWriter extends RichSinkFunction<CNGovCleanData> {
     @Override
     public void close() throws IOException {
 
-    //   logger.error("想要调用close方法 ------------------------------------------------------------------------------");
+        //   logger.error("想要调用close方法 ------------------------------------------------------------------------------");
         mutator.flush();
         /*if (mutator != null) {
             mutator.close();
@@ -62,8 +65,8 @@ public class HBaseWriter extends RichSinkFunction<CNGovCleanData> {
     public void invoke(CNGovCleanData values, Context context) throws Exception {
         //Date 1970-01-06 11:45:55  to 445555000
 
-    //    logger.info("开始写入hbase...................");
-    //    long unixTimestamp= 0;
+        //    logger.info("开始写入hbase...................");
+        //    long unixTimestamp= 0;
         /*try {
             String gatherTime = values.GatherTime;
             //毫秒和秒分开处理
@@ -88,7 +91,7 @@ public class HBaseWriter extends RichSinkFunction<CNGovCleanData> {
         Integer urlId = values.getUrlId();
 
         Put put = new Put(Bytes.toBytes(StringUtil.getRowKey(urlId.toString())));
-     //   put.addColumn(Bytes.toBytes("columnFamily"), Bytes.toBytes("next.getKey()"), Bytes.toBytes(next.getValue().toString()));
+        //   put.addColumn(Bytes.toBytes("columnFamily"), Bytes.toBytes("next.getKey()"), Bytes.toBytes(next.getValue().toString()));
         Map<String, Object> map = BeanUtil.beanToMap(values);
         Iterator<Map.Entry<String, Object>> it = map.entrySet().iterator();
         while (it.hasNext()) {
@@ -98,12 +101,14 @@ public class HBaseWriter extends RichSinkFunction<CNGovCleanData> {
             }
         }
 
-     //   put.addColumn(Bytes.toBytes(HbaseProperties.columnFamily1), Bytes.toBytes("url_id"), Bytes.toBytes(values.getUrlId().toString()));
+        //   put.addColumn(Bytes.toBytes(HbaseProperties.columnFamily1), Bytes.toBytes("url_id"), Bytes.toBytes(values.getUrlId().toString()));
 
         mutator.mutate(put);
         //每满500条刷新一下数据
-        if (count >= 1000){
-            logger.info("count = 1000 开始刷入...................");
+        if (count >= 3000) {
+
+            System.out.println(mutator.getName()+"\tcount = 3000 开始刷入...................");
+            logger.info("count = 3000 开始刷入...................");
             mutator.flush();
             count = 0;
         }

@@ -42,7 +42,7 @@ public class HbaseTest {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
-            
+
         }
 
 
@@ -58,8 +58,8 @@ public class HbaseTest {
     public static void main(String[] args) throws Exception {
         //    scanTable(tableName, "1000", columnFamily1, "url_id");;
         //     dropTable(tableName);
-        //    createTable(tableName, columnFamily1, columnFamily2);
-        //    scanData(tableName);
+       //     createTable(tableName, columnFamily1, columnFamily2);
+            scanData(tableName);
 
        /* Table table = con.getTable(TableName.valueOf(tableName));
         Table table2 = con.getTable(TableName.valueOf(tableName));
